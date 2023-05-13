@@ -1,0 +1,2 @@
+rich==13.3.5
+py-cord[speed]==2.4.1
