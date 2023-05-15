@@ -1,12 +1,10 @@
 import os
-import sys
 
 from dataclasses import dataclass
 
 import discord
 import requests
 import rich.traceback
-from rich.align import Align
 
 from rich.console import Console
 
@@ -20,7 +18,7 @@ banner = """
  / _ \/ _ `// __//  ' \/ _ \ / _ \/ // /
 /_//_/\_,_//_/  /_/_/_/\___//_//_/\_, /
                                  /___/
-      Created by: @Apocryphon-X
+      Created by: [u]@Apocryphon-X[/u]
 """
 
 @dataclass
@@ -52,6 +50,7 @@ class HarmonyBot(discord.Bot):
             console.log(f"{Bars.warning}{Prompts.client} Aborting.")
             await self.close()
             return
+
         console.log(
             f"{Bars.success}{Prompts.omegaup} Logged in as: "
             f"[green]{api_data['name']}[/] [magenta]({api_data['username']})[/]"
@@ -62,11 +61,11 @@ class HarmonyBot(discord.Bot):
         console.print_exception(show_locals=True)
 
     async def on_ready(self):
+        await self.check_omegaup_profile()
         console.log(
             f"{Bars.success}{Prompts.discord} Logged in as: "
             f"[green]{self.user}[/] [magenta]({self.user.id})[/]"
         )
-        await self.check_omegaup_profile()
 
 
 def get_token(name):
@@ -90,3 +89,4 @@ if __name__ == "__main__":
     bot = HarmonyBot()
     bot.set_omegaup_token(OMEGAUP_TOKEN)
     bot.run(DISCORD_TOKEN)
+    console.print("\n[cyan](i)[/] Sayōnara!")
