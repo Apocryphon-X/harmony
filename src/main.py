@@ -391,8 +391,10 @@ if __name__ == "__main__":
             f"{bot.OMEGAUP_API_ENTRYPOINT}/contest/problems",
             params={"contest_alias": HarmonyBot.target_contest},
         ).json()
+
         if "error" in api_response:
             return []
+
         return [problem["alias"] for problem in api_response["problems"]]
 
     @bot.slash_command(
