@@ -1,4 +1,4 @@
-![image](https://github.com/Apocryphon-X/harmony/assets/40130428/532993d8-4798-4eb8-9fa2-d9288d2c91d3)
+![Banner][7]
 
 Discord bot to attend omegaUp contest clarifications easily.
 
@@ -28,13 +28,16 @@ On every Harmony notification will apear some buttons as shown below:
 
 In addition, the bot features an `/announce` slash command. You can use this command to send a public clarification with a specified message about the selected problem.
 
+
 ![Slash Command][2]
+
 
 If you have any questions or concerns about Harmony, please let me know.
 
 [1]: https://github.com/omegaup/omegaup/tree/main/frontend/server/src/Controllers#apiusercreateapitoken
-[2]: https://github.com/Apocryphon-X/harmony/assets/40130428/a93536b1-7c4c-456f-90ce-bd6584f602fe
-[3]: https://github.com/Apocryphon-X/harmony/assets/40130428/ed7bb4be-e1b2-460a-9e8e-ab63ca64df02
-[4]: https://github.com/Apocryphon-X/harmony/assets/40130428/3ba7d9ef-6313-4ec2-b912-05810c9a0c79
-[5]: https://github.com/Apocryphon-X/harmony/assets/40130428/c2255e94-d470-49e4-beda-d505f3c6a3cc
-[6]: https://github.com/Apocryphon-X/harmony/assets/40130428/0ebea953-a172-4da4-b8c1-c31818a18d18
+[2]: https://github.com/Apocryphon-X/harmony/assets/40130428/3d50714d-eefb-47bf-85b9-ad5295b48f5d
+[3]: https://github.com/Apocryphon-X/harmony/assets/40130428/e438bd40-68d3-41c9-b98a-3e5fff3cde52
+[4]: https://github.com/Apocryphon-X/harmony/assets/40130428/d9f1fee1-ecad-4e24-b156-1eda9429f14d
+[5]: https://github.com/Apocryphon-X/harmony/assets/40130428/1c69d2a8-508f-48f6-8366-5ede40423e0c
+[6]: https://github.com/Apocryphon-X/harmony/assets/40130428/f0b81beb-3dc4-448c-b125-91d2208b3291
+[7]: https://github.com/Apocryphon-X/harmony/assets/40130428/1706e9c8-50f4-4540-b910-72f47e445507
