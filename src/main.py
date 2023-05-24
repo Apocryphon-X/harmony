@@ -21,12 +21,12 @@ rich.traceback.install(show_locals=True)
 console = Console()
 
 banner = """
-   __
-  / /  ___ _ ____ __ _  ___   ___  __ __ [blink red]*[/blink red]
- / _ \/ _ `// __//  ' \/ _ \ / _ \/ // /
-/_//_/\_,_//_/  /_/_/_/\___//_//_/\_, /
-                                 /___/
-      Created by: [u]@Apocryphon-X[/u]
+    __
+   / /  ___ _ ____ __ _  ___   ___  __ __ [blink red]*[/blink red]
+  / _ \/ _ `// __//  ' \/ _ \ / _ \/ // /
+ /_//_/\_,_//_/  /_/_/_/\___//_//_/\_, /
+                                  /___/
+       Created by: [u]@Apocryphon-X[/u]
 """
 
 
@@ -126,7 +126,7 @@ class AnswerModal(discord.ui.Modal):
         new_embed = interaction.message.embeds[0]
         new_embed.colour = 0x2B2D31
 
-        # Last index twice, not sure if works with -1 (untested)
+        # Remove the last index twice, not sure if it works with -1 (untested)
         new_embed.remove_field(3)
         new_embed.remove_field(3)
 
@@ -186,7 +186,6 @@ class HarmonyBot(discord.Bot):
     has_target_data = False
     target_contest = ...
     omegaup_username = ...
-    # omegaup_client = ... # This needs to be static. Defined on `set_omegaup_token()`
 
     async def _get_discord_object(self, fetch_method, object_name):
         valid_id = False
@@ -234,7 +233,6 @@ class HarmonyBot(discord.Bot):
         self.omegaup_client = requests.Session()
         self.omegaup_client.headers["Authorization"] = f"token {api_token}"
 
-        # self.__class__.omegaup_client = self.omegaup_client
 
     async def on_error(self, event_method, *args, **kwargs):
         console.log(
@@ -324,7 +322,7 @@ class HarmonyBot(discord.Bot):
 
             notification_embed = discord.Embed(colour=0x40C1F3)
             notification_embed.set_author(
-                name=f"{pending['author']} clarification:", icon_url=Icons.at_sign
+                name=f"{pending['author']}'s clarification:", icon_url=Icons.at_sign
             )
             notification_embed.add_field(
                 name="Problem alias:",
@@ -407,6 +405,9 @@ if __name__ == "__main__":
         ),
         content: str,
     ):
+        console.log(f"{Bars.info}{Prompts.discord} Slash command was invoked. Interaction data:")
+        console.log(Panel(Pretty(ctx.interaction.to_dict(), indent_guides=True)))
+
         bot.omegaup_client.post(
             f"{HarmonyBot.OMEGAUP_API_ENTRYPOINT}/clarification/create",
             params={
