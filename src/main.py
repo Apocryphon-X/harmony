@@ -17,6 +17,14 @@ from rich.control import Control
 from rich.panel import Panel
 from rich.pretty import Pretty
 
+import logging
+import contextlib
+
+try:
+    from http.client import HTTPConnection # py3
+except ImportError:
+    from httplib import HTTPConnection # py2
+
 rich.traceback.install(show_locals=True)
 console = Console()
 
@@ -292,7 +300,66 @@ class HarmonyBot(discord.Bot):
             console.log(
                 f"{Bars.success}{Prompts.client} Contest alias was stored successfully."
             )
+
+            self.contest_problems = []
             self.clarifications_monitor.start()
+            self.fetch_problems_task.start()
+
+    # This can not only be fetched on start.
+    # Reason: What will happen if some problems are added after that?
+    # (They will not appear in the autocomplete options)
+    @tasks.loop(minutes=10)
+    async def fetch_problems_task(self):
+        message = await self.main_channel.send(
+            "Fetching some data from omegaUp... This should not take long.\n"
+            "Functions will be locked during this process."
+        )
+
+        console.log(
+            f"{Bars.info}{Prompts.client} Fetching omegaUp contest data "
+            "to enable autocompletion on [green]/announce[/]..."
+        )
+
+        console.log(
+            f"{Bars.warning}{Prompts.client} [b u]BOT WILL BE LOCKED DURING THIS "
+            "PROCESS.[/] (Even Ctrl-C will not work) [dim]Sorry about that...[/]"
+        )
+
+        console.log(
+            f"{Bars.warning}{Prompts.client} [b]Unformatted errors [white on red]"
+            "MAY APPEAR[/white on red] after this.[/b]"
+        )
+
+        # We really need an asynchronous omegaUp client, this request blocks the entire thing
+        # causing malfunctions in the bot and the Ctrl-C SIGINT signal capture.
+
+        api_response = bot.omegaup_client.get(
+            f"{bot.OMEGAUP_API_ENTRYPOINT}/contest/problems",
+            params={"contest_alias": HarmonyBot.target_contest},
+        ).json()
+
+        # ^^^^ 99% sure this will behave properly if I use AIOHTTP instead
+        # (I'm out of time to implement that right now)
+
+        await message.delete()
+        await self.main_channel.send("Fetching completed. We are online again!", delete_after=10)
+
+        if "error" in api_response:
+            console.log(
+                f"{Bars.error}{Prompts.omegaup} Fetching failed: '{api_data['errorname']}'."
+            )
+            self.contest_problems = []
+            return
+
+        self.contest_problems = [
+            problem["alias"] for problem in api_response["problems"]
+        ]
+
+        console.log(
+            f"{Bars.success}{Prompts.client} Fetching complete."
+        )
+
+
 
     @tasks.loop(seconds=10)
     async def clarifications_monitor(self):
@@ -385,15 +452,17 @@ if __name__ == "__main__":
     bot.set_omegaup_token(OMEGAUP_TOKEN)
 
     async def available_problems(ctx: discord.AutocompleteContext):
-        api_response = bot.omegaup_client.get(
-            f"{bot.OMEGAUP_API_ENTRYPOINT}/contest/problems",
-            params={"contest_alias": HarmonyBot.target_contest},
-        ).json()
+        console.log(f"{Bars.info}{Prompts.discord} Command [green]/announce[/] autocompletion was triggered. Data:")
+        console.log(Panel(Pretty(ctx.interaction.to_dict(), indent_guides=True)))
 
-        if "error" in api_response:
+        if len(bot.contest_problems) == 0:
             return []
 
-        return [problem["alias"] for problem in api_response["problems"]]
+
+        if ctx.interaction.channel_id != bot.main_channel.id:
+            return []
+
+        return bot.contest_problems
 
     @bot.slash_command(
         description="Sends a new public clarification with the given message."
@@ -407,6 +476,14 @@ if __name__ == "__main__":
     ):
         console.log(f"{Bars.info}{Prompts.discord} Slash command was invoked. Interaction data:")
         console.log(Panel(Pretty(ctx.interaction.to_dict(), indent_guides=True)))
+
+        # Just in case ~
+        if ctx.channel_id != bot.main_channel.id:
+            await ctx.respond(
+                f"You can not do that here.",
+                ephemeral=True,
+                delete_after=3.0
+            )
 
         bot.omegaup_client.post(
             f"{HarmonyBot.OMEGAUP_API_ENTRYPOINT}/clarification/create",
