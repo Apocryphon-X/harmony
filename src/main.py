@@ -17,12 +17,6 @@ from rich.control import Control
 from rich.panel import Panel
 from rich.pretty import Pretty
 
-
-try:
-    pass  # py3
-except ImportError:
-    pass  # py2
-
 rich.traceback.install(show_locals=True)
 console = Console()
 
