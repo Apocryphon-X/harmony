@@ -17,13 +17,11 @@ from rich.control import Control
 from rich.panel import Panel
 from rich.pretty import Pretty
 
-import logging
-import contextlib
 
 try:
-    from http.client import HTTPConnection # py3
+    pass  # py3
 except ImportError:
-    from httplib import HTTPConnection # py2
+    pass  # py2
 
 rich.traceback.install(show_locals=True)
 console = Console()
@@ -241,7 +239,6 @@ class HarmonyBot(discord.Bot):
         self.omegaup_client = requests.Session()
         self.omegaup_client.headers["Authorization"] = f"token {api_token}"
 
-
     async def on_error(self, event_method, *args, **kwargs):
         console.log(
             f"{Bars.error}{Prompts.client} Ignoring exception in [yellow]`{event_method}`[/]:"
@@ -342,11 +339,13 @@ class HarmonyBot(discord.Bot):
         # (I'm out of time to implement that right now)
 
         await message.delete()
-        await self.main_channel.send("Fetching completed. We are online again!", delete_after=10)
+        await self.main_channel.send(
+            "Fetching completed. We are online again!", delete_after=10
+        )
 
         if "error" in api_response:
             console.log(
-                f"{Bars.error}{Prompts.omegaup} Fetching failed: '{api_data['errorname']}'."
+                f"{Bars.error}{Prompts.omegaup} Fetching failed: '{api_response['errorname']}'."
             )
             self.contest_problems = []
             return
@@ -355,11 +354,7 @@ class HarmonyBot(discord.Bot):
             problem["alias"] for problem in api_response["problems"]
         ]
 
-        console.log(
-            f"{Bars.success}{Prompts.client} Fetching complete."
-        )
-
-
+        console.log(f"{Bars.success}{Prompts.client} Fetching complete.")
 
     @tasks.loop(seconds=10)
     async def clarifications_monitor(self):
@@ -452,12 +447,13 @@ if __name__ == "__main__":
     bot.set_omegaup_token(OMEGAUP_TOKEN)
 
     async def available_problems(ctx: discord.AutocompleteContext):
-        console.log(f"{Bars.info}{Prompts.discord} Command [green]/announce[/] autocompletion was triggered. Data:")
+        console.log(
+            f"{Bars.info}{Prompts.discord} Command [green]/announce[/] autocompletion was triggered. Data:"
+        )
         console.log(Panel(Pretty(ctx.interaction.to_dict(), indent_guides=True)))
 
         if len(bot.contest_problems) == 0:
             return []
-
 
         if ctx.interaction.channel_id != bot.main_channel.id:
             return []
@@ -474,15 +470,15 @@ if __name__ == "__main__":
         ),
         content: str,
     ):
-        console.log(f"{Bars.info}{Prompts.discord} Slash command was invoked. Interaction data:")
+        console.log(
+            f"{Bars.info}{Prompts.discord} Slash command was invoked. Interaction data:"
+        )
         console.log(Panel(Pretty(ctx.interaction.to_dict(), indent_guides=True)))
 
         # Just in case ~
         if ctx.channel_id != bot.main_channel.id:
             await ctx.respond(
-                f"You can not do that here.",
-                ephemeral=True,
-                delete_after=3.0
+                "You can not do that here.", ephemeral=True, delete_after=3.0
             )
 
         bot.omegaup_client.post(
