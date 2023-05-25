@@ -34,6 +34,15 @@ In addition, the bot features an `/announce` slash command. You can use this com
 
 If you have any questions or concerns about Harmony, please let me know.
 
+# License
+
+<img align="right" src="https://user-images.githubusercontent.com/40130428/112392193-a253ae00-8cbe-11eb-8a27-729c23729923.png">
+
+<p align="justify">
+  <a href="https://github.com/Apocryphon-X/harmony">Apocryphon-X/harmony</a> is licensed under the MIT License. A short and simple permissive license with conditions only requiring preservation of copyright and license notices. Licensed works, modifications and larger works may be distributed under different terms and without source code.
+More details can be found in the <a href="https://github.com/Apocryphon-X/harmony/blob/main/LICENSE"><code>LICENSE</code></a> file.
+</p>
+
 [1]: https://github.com/omegaup/omegaup/tree/main/frontend/server/src/Controllers#apiusercreateapitoken
 [2]: https://github.com/Apocryphon-X/harmony/assets/40130428/3d50714d-eefb-47bf-85b9-ad5295b48f5d
 [3]: https://github.com/Apocryphon-X/harmony/assets/40130428/e438bd40-68d3-41c9-b98a-3e5fff3cde52
