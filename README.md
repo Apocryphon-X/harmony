@@ -14,6 +14,7 @@ To get started with the bot, make sure you have the following environment variab
 
 If you haven't set up these environment variables yet, Harmony will prompt you for them during the initial setup process. You'll also be asked to provide additional information, such as the guild and channel IDs where the bot will communicate and the target contest.
 
+This is just an example of how it looks like:
 ![Log Example][6]
 
 
