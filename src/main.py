@@ -113,7 +113,7 @@ class AnswerModal(discord.ui.Modal):
             f"{Bars.success}{Prompts.omegaup} Sending clarification #{self.clarification_id} answer."
         )
         self.answer_button.label = "Update answer"
-        self.answer_button.disabled = False
+        # self.answer_button.disabled = False
 
         modal_answer = self.children[0].value
         self.omegaup_client.post(
@@ -127,8 +127,8 @@ class AnswerModal(discord.ui.Modal):
         new_embed.colour = 0x2B2D31
 
         # Remove the last index twice, not sure if it works with -1 (untested)
-        new_embed.remove_field(3)
-        new_embed.remove_field(3)
+        new_embed.remove_field(4)
+        new_embed.remove_field(4)
 
         new_embed.add_field(
             name="Answer:",
@@ -166,7 +166,7 @@ class AnswerButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         console.log(f"{Bars.info}{Prompts.discord} Interaction received:")
         console.log(Panel(Pretty(interaction.to_dict(), indent_guides=True)))
-        self.disabled = True
+        # self.disabled = True
         await interaction.message.edit(view=self.parent_view)
         await interaction.response.send_modal(
             AnswerModal(
@@ -184,7 +184,7 @@ class HarmonyBot(discord.Bot):
     OMEGAUP_API_ENTRYPOINT = "https://omegaup.com/api"
     pending_clarifications = set()
     has_target_data = False
-    target_contest = ...
+    target_contests = ...
     omegaup_username = ...
 
     async def _get_discord_object(self, fetch_method, object_name):
@@ -265,27 +265,35 @@ class HarmonyBot(discord.Bot):
             self.main_guild = self
 
             valid_alias = False
-            self.target_contest = None
+            self.target_contests = None
 
             while not valid_alias:
-                self.target_contest = console.input(
-                    "[cyan](?)[/] Please provide the target contest alias: "
+                target_contests_input = console.input(
+                    "[cyan](?)[/] Please provide the target contest alias (you can specify multiple values separated by commas): "
                 )
 
-                api_data = self.omegaup_client.get(
-                    url=f"{self.OMEGAUP_API_ENTRYPOINT}/contest/details",
-                    params={"contest_alias": self.target_contest},
-                ).json()
+                self.target_contests = target_contests_input.replace(" ", "").split(",")
 
-                if "error" in api_data:
-                    console.control(Control.move_to_column(0, -1))
-                    console.log(
-                        f"{Bars.error}{Prompts.omegaup} That alias is not valid. Please verify the data you provided."
-                    )
-                else:
+                found_error = False
+                for alias in self.target_contests:
+                    api_data = self.omegaup_client.get(
+                        url=f"{self.OMEGAUP_API_ENTRYPOINT}/contest/details",
+                        params={"contest_alias": self.target_contests},
+                    ).json()
+
+                    if "error" in api_data:
+                        console.control(Control.move_to_column(0, -1))
+                        console.log(
+                            f"{Bars.error}{Prompts.omegaup} That alias is not valid. Please verify the data you provided."
+                        )
+
+                        found_error = True
+                        break
+
+                if not found_error:
                     valid_alias = True
 
-            self.__class__.target_contest = self.target_contest
+            self.__class__.target_contests = self.target_contests
 
             console.control(Control.move_to_column(0, -1))
             console.log(
@@ -324,98 +332,112 @@ class HarmonyBot(discord.Bot):
         # We really need an asynchronous omegaUp client, this request blocks the entire thing
         # causing malfunctions in the bot and the Ctrl-C SIGINT signal capture.
 
-        api_response = bot.omegaup_client.get(
-            f"{bot.OMEGAUP_API_ENTRYPOINT}/contest/problems",
-            params={"contest_alias": HarmonyBot.target_contest},
-        ).json()
+        self.contest_problems = {}
+
+        for alias in self.target_contests:
+            api_response = bot.omegaup_client.get(
+                f"{bot.OMEGAUP_API_ENTRYPOINT}/contest/problems",
+                params={"contest_alias": alias},
+            ).json()
+
+            if "error" in api_response:
+                break
+
+            self.contest_problems[alias] = [problem["alias"] for problem in api_response["problems"]]
 
         # ^^^^ 99% sure this will behave properly if I use AIOHTTP instead
         # (I'm out of time to implement that right now)
 
         await message.delete()
         await self.main_channel.send(
-            "Fetching completed. We are online again!", delete_after=10
+            "Fetching completed. We are online!", delete_after=10
         )
 
         if "error" in api_response:
             console.log(
                 f"{Bars.error}{Prompts.omegaup} Fetching failed: '{api_response['errorname']}'."
             )
-            self.contest_problems = []
+            self.contest_problems = {}
             return
 
-        self.contest_problems = [
-            problem["alias"] for problem in api_response["problems"]
-        ]
-
-        console.log(f"{Bars.success}{Prompts.client} Fetching complete.")
+        console.log(f"{Bars.success}{Prompts.client} Fetching completed without errors.")
 
     @tasks.loop(seconds=10)
     async def clarifications_monitor(self):
         console.log(
             f"{Bars.info}{Prompts.client} Looking for pending [u]UNREGISTERED[/] clarifications..."
         )
-        api_data = self.omegaup_client.get(
-            url=f"{self.OMEGAUP_API_ENTRYPOINT}/contest/clarifications",
-            params={"contest_alias": self.target_contest},
-        ).json()
 
-        if "error" in api_data:
-            console.log(
-                f"{Bars.error}{Prompts.omegaup} Message error found: '{api_data['errorname']}'."
-            )
-            return
+        for alias in self.target_contests:
+            api_data = self.omegaup_client.get(
+                url=f"{self.OMEGAUP_API_ENTRYPOINT}/contest/clarifications",
+                params={"contest_alias": alias},
+            ).json()
 
-        filtered_response = filter(
-            lambda c: c["clarification_id"] not in self.pending_clarifications
-            and c["answer"] is None
-            and c["author"] != c["receiver"],
-            api_data["clarifications"],
-        )
-        pending_counter = 0
-        for pending in filtered_response:
-            pending_counter += 1
-
-            notification_embed = discord.Embed(colour=0x40C1F3)
-            notification_embed.set_author(
-                name=f"{pending['author']}'s clarification:", icon_url=Icons.at_sign
-            )
-            notification_embed.add_field(
-                name="Problem alias:",
-                value=f"`{pending['problem_alias']}`",
-                inline=True,
-            )
-
-            notification_embed.add_field(
-                name="Clarification id:",
-                value=f"`#{pending['clarification_id']}`",
-                inline=True,
-            )
-
-            notification_embed.add_field(
-                name="Content:",
-                value=f"```\n{pending['message']}\n```",
-                inline=False,
-            )
-
-            notification_embed.timestamp = datetime.fromtimestamp(pending["time"])
-            view = discord.ui.View(timeout=None)
-            view.has_alternate_button = False
-            view.add_item(
-                AnswerButton(
-                    view,
-                    self.omegaup_client,
-                    pending["clarification_id"],
+            if "error" in api_data:
+                console.log(
+                    f"{Bars.error}{Prompts.omegaup} Message error found: '{api_data['errorname']}'."
                 )
+                continue
+
+            filtered_response = filter(
+                lambda c: c["clarification_id"] not in self.pending_clarifications
+                and c["answer"] is None
+                and c["author"] != c["receiver"],
+                api_data["clarifications"],
             )
-            await self.main_channel.send(embed=notification_embed, view=view)
-            self.pending_clarifications.add(pending["clarification_id"])
-        if pending_counter > 0:
-            console.log(
-                f"{Bars.info}{Prompts.client} Found {pending_counter} clarification{'s' if pending_counter > 1 else ''}."
-            )
-        else:
-            console.log(f"{Bars.info}{Prompts.client} No clarifications found.")
+
+            pending_counter = 0
+            for pending in filtered_response:
+                pending_counter += 1
+
+                notification_embed = discord.Embed(colour=0x40C1F3)
+                notification_embed.set_author(
+                    name=f"{pending['author']}'s clarification:", icon_url=Icons.at_sign
+                )
+
+                notification_embed.add_field(
+                    name="Contest:",
+                    value=f"`{alias}`",
+                    inline=False,
+                )
+
+                notification_embed.add_field(
+                    name="Problem alias:",
+                    value=f"`{pending['problem_alias']}`",
+                    inline=True,
+                )
+
+                notification_embed.add_field(
+                    name="Clarification id:",
+                    value=f"`#{pending['clarification_id']}`",
+                    inline=True,
+                )
+
+                notification_embed.add_field(
+                    name="Content:",
+                    value=f"```\n{pending['message']}\n```",
+                    inline=False,
+                )
+
+                notification_embed.timestamp = datetime.fromtimestamp(pending["time"])
+                view = discord.ui.View(timeout=None)
+                view.has_alternate_button = False
+                view.add_item(
+                    AnswerButton(
+                        view,
+                        self.omegaup_client,
+                        pending["clarification_id"],
+                    )
+                )
+                await self.main_channel.send(embed=notification_embed, view=view)
+                self.pending_clarifications.add(pending["clarification_id"])
+            if pending_counter > 0:
+                console.log(
+                    f"{Bars.info}{Prompts.client} Found {pending_counter} clarification{'s' if pending_counter > 1 else ''}."
+                )
+            else:
+                console.log(f"{Bars.info}{Prompts.client} No clarifications found.")
 
 
 def get_token(name):
@@ -452,13 +474,20 @@ if __name__ == "__main__":
         if ctx.interaction.channel_id != bot.main_channel.id:
             return []
 
-        return bot.contest_problems
+        if ctx.options["contest_alias"] not in bot.contest_problems:
+            return []
+
+        return bot.contest_problems[ctx.options["contest_alias"]]
+
+    async def available_contests(ctx: discord.AutocompleteContext):
+        return bot.target_contests
 
     @bot.slash_command(
         description="Sends a new public clarification with the given message."
     )
     async def announce(
         ctx,
+        contest_alias: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(available_contests)),
         problem_alias: discord.Option(
             str, autocomplete=discord.utils.basic_autocomplete(available_problems)
         ),
@@ -478,7 +507,7 @@ if __name__ == "__main__":
         bot.omegaup_client.post(
             f"{HarmonyBot.OMEGAUP_API_ENTRYPOINT}/clarification/create",
             params={
-                "contest_alias": HarmonyBot.target_contest,
+                "contest_alias": contest_alias,
                 "message": content,
                 "problem_alias": problem_alias,
                 "username": HarmonyBot.omegaup_username,  # This makes it public automatically.
@@ -494,4 +523,4 @@ if __name__ == "__main__":
     console.print("[cyan](i)[/] Sayōnara!")
 
 
-# ... This code hurts me in so many ways
+# ... This code hurts me in so many ways (but at least it works!)
