@@ -269,7 +269,7 @@ class HarmonyBot(discord.Bot):
 
             while not valid_alias:
                 target_contests_input = console.input(
-                    "[cyan](?)[/] Please provide the target contest alias (you can specify multiple values separated by commas): "
+                    "[cyan](?)[/] Please provide the alias(es) of the contest(s) you wish to monitor. You can specify multiple values by separating them with commas: "
                 )
 
                 self.target_contests = target_contests_input.replace(" ", "").split(",")
