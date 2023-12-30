@@ -35,7 +35,7 @@ class AlternateButton(discord.ui.Button):
             self.label = "Make Private"
             self.style = discord.ButtonStyle.green
 
-        self.console.log(
+        console.log(
             f"{Bars.success}{Prompts.omegaup} Clarification #{self.clarification_id} is now {message}."
         )
         await interaction.message.edit(view=self.parent_view)
