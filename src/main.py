@@ -4,26 +4,18 @@
 import os
 
 from datetime import datetime
-from dataclasses import dataclass
 
 import discord
 import requests
-import rich.traceback
 
 from discord.ext import tasks
 
-from rich.console import Console
-from rich.control import Control
-from rich.panel import Panel
-from rich.pretty import Pretty
+from discord_components import AlternateButton, AnswerButton
+from discord_components import AnswerModal
 
+import rich.traceback
+from log_components import *
 
-from discord_components.buttons import AlternateButton, AnswerButton
-from discord_components.modal import AnswerModal
-
-
-rich.traceback.install(show_locals=True)
-console = Console()
 
 banner = """
     __
@@ -33,22 +25,6 @@ banner = """
                                   /___/
        Created by: [u]@Apocryphon-X[/u]
 """
-
-
-@dataclass
-class Prompts:
-    client = "[white on #5b5b5b]$CLIENT[/]"
-    omegaup = "[white on #5588dd]OMEGAUP[/]"
-    discord = "[white on #404eed]DISCORD[/]"
-
-
-@dataclass
-class Bars:
-    error = "[red]▌[/]"
-    critical_error = "[blink red]▌[/]"
-    info = "[cyan]▌[/]"
-    success = "[green]▌[/]"
-    warning = "[yellow]▌[/]"
 
 
 @dataclass
@@ -219,7 +195,9 @@ class HarmonyBot(discord.Bot):
             if "error" in api_response:
                 break
 
-            self.contest_problems[alias] = [problem["alias"] for problem in api_response["problems"]]
+            self.contest_problems[alias] = [
+                problem["alias"] for problem in api_response["problems"]
+            ]
 
         # ^^^^ 99% sure this will behave properly if I use AIOHTTP instead
         # (I'm out of time to implement that right now)
@@ -236,7 +214,9 @@ class HarmonyBot(discord.Bot):
             self.contest_problems = {}
             return
 
-        console.log(f"{Bars.success}{Prompts.client} Fetching completed without errors.")
+        console.log(
+            f"{Bars.success}{Prompts.client} Fetching completed without errors."
+        )
 
     @tasks.loop(seconds=10)
     async def clarifications_monitor(self):
@@ -327,6 +307,7 @@ def get_token(name):
 
 
 if __name__ == "__main__":
+    rich.traceback.install(show_locals=True)
     console.clear()
 
     OMEGAUP_TOKEN = get_token("OMEGAUP_API_TOKEN")
@@ -363,7 +344,9 @@ if __name__ == "__main__":
     )
     async def announce(
         ctx,
-        contest_alias: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(available_contests)),
+        contest_alias: discord.Option(
+            str, autocomplete=discord.utils.basic_autocomplete(available_contests)
+        ),
         problem_alias: discord.Option(
             str, autocomplete=discord.utils.basic_autocomplete(available_problems)
         ),
