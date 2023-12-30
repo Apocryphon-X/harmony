@@ -31,4 +31,3 @@ class AnswerButton(discord.ui.Button):
             )
         )
         await interaction.message.edit(view=self.parent_view)
-

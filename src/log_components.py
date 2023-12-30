@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 console = Console()
 
+
 @dataclass
 class Prompts:
     client = "[white on #5b5b5b]$CLIENT[/]"
@@ -21,4 +22,3 @@ class Bars:
     info = "[cyan]▌[/]"
     success = "[green]▌[/]"
     warning = "[yellow]▌[/]"
-

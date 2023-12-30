@@ -195,7 +195,9 @@ class HarmonyBot(discord.Bot):
             if "error" in api_response:
                 break
 
-            self.contest_problems[alias] = [problem["alias"] for problem in api_response["problems"]]
+            self.contest_problems[alias] = [
+                problem["alias"] for problem in api_response["problems"]
+            ]
 
         # ^^^^ 99% sure this will behave properly if I use AIOHTTP instead
         # (I'm out of time to implement that right now)
@@ -212,7 +214,9 @@ class HarmonyBot(discord.Bot):
             self.contest_problems = {}
             return
 
-        console.log(f"{Bars.success}{Prompts.client} Fetching completed without errors.")
+        console.log(
+            f"{Bars.success}{Prompts.client} Fetching completed without errors."
+        )
 
     @tasks.loop(seconds=10)
     async def clarifications_monitor(self):
@@ -340,7 +344,9 @@ if __name__ == "__main__":
     )
     async def announce(
         ctx,
-        contest_alias: discord.Option(str, autocomplete=discord.utils.basic_autocomplete(available_contests)),
+        contest_alias: discord.Option(
+            str, autocomplete=discord.utils.basic_autocomplete(available_contests)
+        ),
         problem_alias: discord.Option(
             str, autocomplete=discord.utils.basic_autocomplete(available_problems)
         ),

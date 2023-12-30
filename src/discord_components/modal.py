@@ -3,6 +3,7 @@ from log_components import *
 
 from .alternate_button import AlternateButton
 
+
 class AnswerModal(discord.ui.Modal):
     def __init__(self, *args, **kwargs):
         self.parent_view = kwargs.pop("parent_view")

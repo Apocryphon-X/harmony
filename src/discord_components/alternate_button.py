@@ -44,4 +44,3 @@ class AlternateButton(discord.ui.Button):
             ephemeral=True,
             delete_after=5,
         )
-
