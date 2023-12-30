@@ -4,26 +4,18 @@
 import os
 
 from datetime import datetime
-from dataclasses import dataclass
 
 import discord
 import requests
-import rich.traceback
 
 from discord.ext import tasks
 
-from rich.console import Console
-from rich.control import Control
-from rich.panel import Panel
-from rich.pretty import Pretty
+from discord_components import AlternateButton, AnswerButton
+from discord_components import AnswerModal
 
+import rich.traceback
+from log_components import *
 
-from discord_components.buttons import AlternateButton, AnswerButton
-from discord_components.modal import AnswerModal
-
-
-rich.traceback.install(show_locals=True)
-console = Console()
 
 banner = """
     __
@@ -33,22 +25,6 @@ banner = """
                                   /___/
        Created by: [u]@Apocryphon-X[/u]
 """
-
-
-@dataclass
-class Prompts:
-    client = "[white on #5b5b5b]$CLIENT[/]"
-    omegaup = "[white on #5588dd]OMEGAUP[/]"
-    discord = "[white on #404eed]DISCORD[/]"
-
-
-@dataclass
-class Bars:
-    error = "[red]▌[/]"
-    critical_error = "[blink red]▌[/]"
-    info = "[cyan]▌[/]"
-    success = "[green]▌[/]"
-    warning = "[yellow]▌[/]"
 
 
 @dataclass
@@ -327,6 +303,7 @@ def get_token(name):
 
 
 if __name__ == "__main__":
+    rich.traceback.install(show_locals=True)
     console.clear()
 
     OMEGAUP_TOKEN = get_token("OMEGAUP_API_TOKEN")

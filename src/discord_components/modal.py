@@ -1,7 +1,7 @@
 import discord
+from log_components import *
 
-class AlternateButton():
-    pass
+from .alternate_button import AlternateButton
 
 class AnswerModal(discord.ui.Modal):
     def __init__(self, *args, **kwargs):

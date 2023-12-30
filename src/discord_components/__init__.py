@@ -1,2 +1,4 @@
-from .buttons import AlternateButton, AnswerButton
-from .modal import AnswerModal
+
+from .alternate_button import *
+from .answer_button import *
+from .modal import *
